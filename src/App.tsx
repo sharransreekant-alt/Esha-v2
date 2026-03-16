@@ -1,0 +1,91 @@
+import React, { useState, useEffect } from 'react'
+import { AppProvider, useApp } from './context/AppContext'
+import { ToastProvider } from './components/Toast'
+import { SetupScreen } from './components/SetupScreen'
+import { Header } from './components/Header'
+import { Nav } from './components/Nav'
+import { LogView } from './components/LogView'
+import { TodayView } from './components/TodayView'
+import { HistoryView } from './components/HistoryView'
+import { MoreView } from './components/MoreView'
+import { GrowthView } from './components/GrowthView'
+import { InsightsView } from './components/InsightsView'
+import { JournalView } from './components/JournalView'
+import { HandoverView } from './components/HandoverView'
+import { EveningSummary } from './components/EveningSummary'
+
+function AppShell() {
+  const {
+    who, view, loading,
+    handovers, hasUnreadHandover, setView,
+    eveningSeen, markEveningSeen,
+  } = useApp()
+
+  const [showEvening, setShowEvening] = useState(false)
+
+  // Show evening summary once per day after 6pm
+  useEffect(() => {
+    const hour = new Date().getHours()
+    const today = new Date().toDateString()
+    if (hour >= 18 && eveningSeen !== today) {
+      const t = setTimeout(() => setShowEvening(true), 1500)
+      return () => clearTimeout(t)
+    }
+  }, [eveningSeen])
+
+  function closeEvening() {
+    markEveningSeen()
+    setShowEvening(false)
+  }
+
+  // Not set up yet
+  if (!who) return <SetupScreen />
+
+  // Loading
+  if (loading) return <div className="spin" />
+
+  const subViews = ['growth', 'insights', 'journal', 'handover']
+  const isSubView = subViews.includes(view)
+  const unread = hasUnreadHandover()
+
+  return (
+    <>
+      <Header />
+      <Nav />
+
+      {/* Handover banner */}
+      {unread && !isSubView && (
+        <div onClick={() => setView('handover')} style={{ background: 'linear-gradient(135deg,#e8fff4,#f0fff8)', borderBottom: '1px solid rgba(62,184,118,0.2)', padding: '12px 18px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--green)' }}>🤝 {handovers[0]?.from} left a handover note</div>
+            <div style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 600, marginTop: 2 }}>Tap to read</div>
+          </div>
+          <div style={{ fontSize: 20, color: 'var(--muted)' }}>›</div>
+        </div>
+      )}
+
+      {/* Views */}
+      {view === 'home'     && <LogView />}
+      {view === 'today'    && <TodayView />}
+      {view === 'history'  && <HistoryView />}
+      {view === 'more'     && <MoreView />}
+      {view === 'growth'   && <GrowthView />}
+      {view === 'insights' && <InsightsView />}
+      {view === 'journal'  && <JournalView />}
+      {view === 'handover' && <HandoverView />}
+
+      {/* Evening summary */}
+      {showEvening && <EveningSummary onClose={closeEvening} />}
+    </>
+  )
+}
+
+export default function App() {
+  return (
+    <AppProvider>
+      <ToastProvider>
+        <AppShell />
+      </ToastProvider>
+    </AppProvider>
+  )
+}
