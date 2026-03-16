@@ -66,8 +66,8 @@ export function eshaAge(): string {
 }
 
 export function feedVolume(e: Entry): number {
-  if (e.components?.length) return e.components.reduce((s, c) => s + (c.volume ?? 0), 0)
-  return e.volume ?? 0
+  if (e.components?.length) return e.components.reduce((s, c) => s + (Number(c.volume) || 0), 0)
+  return Number(e.volume) || 0
 }
 
 export function feedDetail(e: Entry): string {
