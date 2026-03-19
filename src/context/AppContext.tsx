@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import {
-  collection, addDoc, deleteDoc, updateDoc, doc,
+  collection, addDoc, deleteDoc, updateDoc, doc, setDoc,
   query, orderBy, onSnapshot, Timestamp, writeBatch
 } from 'firebase/firestore'
 import { db } from '../firebase'
@@ -22,6 +22,7 @@ interface AppState {
   eveningSeen:    string
   handoverSeen:   number
   notifPermission: NotificationPermission | 'unsupported'
+  aiKey:          string
 }
 
 interface AppContextValue extends AppState {
@@ -44,6 +45,7 @@ interface AppContextValue extends AppState {
   reminderActive: () => boolean
   nextFeedIn:    () => number | null
   hasUnreadHandover: () => boolean
+  saveAiKey:     (key: string) => Promise<void>
 }
 
 const Ctx = createContext<AppContextValue | null>(null)
@@ -58,6 +60,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     eveningSeen:  localStorage.getItem('eveningSeen') || '',
     handoverSeen: parseInt(localStorage.getItem('handoverSeen') || '0'),
     notifPermission: typeof Notification !== 'undefined' ? Notification.permission : 'unsupported',
+    aiKey: '',
   })
 
   const set = useCallback((patch: Partial<AppState>) =>
@@ -87,7 +90,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         snap => { set({ handovers: snap.docs.map(d => ({ id: d.id, ...d.data() } as HandoverEntry)) }); loaded.handover = true },
         () => { loaded.handover = true }),
     ]
-    return () => { clearTimeout(t); unsubs.forEach(u => u()) }
+    // Load shared settings (AI key etc)
+    const settingsSub = onSnapshot(doc(db, 'esha_settings', 'config'),
+      snap => { if (snap.exists()) set({ aiKey: snap.data().aiKey || '' }) },
+      () => {}
+    )
+
+    return () => { clearTimeout(t); unsubs.forEach(u => u()); settingsSub() }
   }, [state.who, set])
 
   // Helpers
@@ -160,6 +169,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const saveAiKey = async (key: string) => {
+    await setDoc(doc(db, 'esha_settings', 'config'), { aiKey: key }, { merge: true })
+    set({ aiKey: key })
+  }
+
   const requestNotifPermission = async () => {
     if (typeof Notification === 'undefined') return
     const p = await Notification.requestPermission()
@@ -189,6 +203,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       dismissReminder, markEveningSeen, markHandoverSeen,
       requestNotifPermission,
       reminderActive, nextFeedIn, hasUnreadHandover,
+      saveAiKey,
     }}>
       {children}
     </Ctx.Provider>

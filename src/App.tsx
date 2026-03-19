@@ -12,6 +12,7 @@ import { GrowthView } from './components/GrowthView'
 import { InsightsView } from './components/InsightsView'
 import { JournalView } from './components/JournalView'
 import { HandoverView } from './components/HandoverView'
+import { AskAI } from './components/AskAI'
 import { EveningSummary } from './components/EveningSummary'
 
 function AppShell() {
@@ -76,6 +77,9 @@ function AppShell() {
 
       {/* Evening summary */}
       {showEvening && <EveningSummary onClose={closeEvening} />}
+
+      {/* AI floating button — always visible */}
+      <AskAI />
     </>
   )
 }
