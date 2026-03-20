@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext'
 import { GoalCard } from './GoalCard'
 import { EntryList } from './EntryList'
 import { GOALS } from '../types'
+import { LeapCard } from './LeapCard'
 import { todayOnly, feedVolume } from '../utils/helpers'
 
 export function TodayView() {
@@ -28,6 +29,7 @@ export function TodayView() {
 
   return (
     <div style={{ padding: '18px 16px 72px' }}>
+      <LeapCard />
       <div className="sec">Today's Goals</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginBottom: 24 }}>
         {goals.map(g => (

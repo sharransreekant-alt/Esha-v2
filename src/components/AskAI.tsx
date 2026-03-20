@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
 import { GOALS, Entry } from '../types'
 import { eshaAge, toDate, feedVolume, feedDetail } from '../utils/helpers'
+import { getLeapStatus, leapContextForAI } from '../utils/leaps'
+import { ESHA_BORN } from '../types'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -39,6 +41,9 @@ function buildContext(entries: Entry[], age: string): string {
     if (gaps.length) avgGapMins = Math.round(gaps.reduce((s, g) => s + g, 0) / gaps.length)
   }
   const feedSummary = feeds.map(f => feedDetail(f)).join('; ')
+  const leapStatus = getLeapStatus(ESHA_BORN)
+  const leapContext = leapContextForAI(leapStatus)
+
   return `ESHA'S DATA:
 Age: ${age}
 Date: ${new Date().toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
@@ -52,7 +57,9 @@ TODAY:
 - Last feed: ${lastFeedAgo !== null ? `${lastFeedAgo} mins ago` : 'No feeds today'}
 
 PATTERNS:
-- Avg feed gap (last 7): ${avgGapMins !== null ? `${avgGapMins} mins` : 'Not enough data'}`.trim()
+- Avg feed gap (last 7): ${avgGapMins !== null ? `${avgGapMins} mins` : 'Not enough data'}
+
+${leapContext}`.trim()
 }
 
 export function AskAI() {
@@ -141,18 +148,28 @@ Guidelines:
       {/* Floating button — always visible */}
       <button
         onClick={() => setOpen(true)}
+        onContextMenu={e => { e.preventDefault(); setShowKeyInput(true); setKeyDraft(aiKey); setOpen(true); }}
+        onTouchStart={() => { const t = setTimeout(() => { setShowKeyInput(true); setKeyDraft(aiKey); setOpen(true); }, 800); const cleanup = () => clearTimeout(t); window.addEventListener('touchend', cleanup, {once:true}); }}
         style={{
           position: 'fixed', bottom: 88, right: 16, zIndex: 50,
-          width: 52, height: 52, borderRadius: '50%', border: 'none',
-          background: 'linear-gradient(135deg, #f58060, var(--coral))',
-          color: '#fff', fontSize: 24, cursor: 'pointer',
-          boxShadow: '0 4px 16px rgba(240,117,96,0.45)',
+          width: 54, height: 54, borderRadius: '50%', border: 'none',
+          background: 'linear-gradient(135deg, #e8d5f5, #ffd8c8)',
+          cursor: 'pointer',
+          boxShadow: '0 4px 18px rgba(180,100,60,0.22)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          transition: 'transform 0.15s',
+          transition: 'transform 0.15s, box-shadow 0.15s',
         }}
-        title="Ask about Esha"
+        title="Ask about Esha (hold to update API key)"
       >
-        🤖
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          {/* Chat bubble */}
+          <path d="M4 6C4 4.895 4.895 4 6 4H22C23.105 4 24 4.895 24 6V17C24 18.105 23.105 19 22 19H15L10 24V19H6C4.895 19 4 18.105 4 17V6Z"
+            fill="var(--coral)" opacity="0.9"/>
+          {/* Sparkle dots */}
+          <circle cx="10" cy="12" r="1.5" fill="white"/>
+          <circle cx="14" cy="12" r="1.5" fill="white"/>
+          <circle cx="18" cy="12" r="1.5" fill="white"/>
+        </svg>
       </button>
 
       {/* Full-screen chat overlay */}
@@ -177,9 +194,7 @@ Guidelines:
             <div style={{ fontFamily: 'Comfortaa, sans-serif', fontSize: 16, fontWeight: 700 }}>
               🤖 Ask about Esha
             </div>
-            <button onClick={() => { setShowKeyInput(true); setKeyDraft(aiKey) }} style={{ background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.5)', borderRadius: 20, padding: '6px 12px', fontSize: 14, cursor: 'pointer' }} title="Update API key">
-              🔑
-            </button>
+            <div style={{ width: 60 }} /> {/* spacer to centre title */}
           </div>
 
           {/* API key setup banner */}

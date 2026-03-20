@@ -4,6 +4,7 @@ import { EntryList } from './EntryList'
 import { FeedModal } from './modals/FeedModal'
 import { Entry, FeedComponent } from '../types'
 import { inputToDate, fmtTime } from '../utils/helpers'
+import { LeapCard } from './LeapCard'
 
 interface SimpleModalProps {
   emoji: string
@@ -125,6 +126,7 @@ export function LogView() {
 
   return (
     <div style={{ padding: '18px 16px 72px' }}>
+      <LeapCard />
       <div className="sec">Log Activity</div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9, marginBottom: 26 }}>
         {actions.map(a => (
