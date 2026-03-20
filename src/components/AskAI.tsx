@@ -143,13 +143,26 @@ Guidelines:
     setLoading(false)
   }
 
+  const longPressTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  function handleLongPressStart() {
+    longPressTimer.current = setTimeout(() => {
+      setShowKeyInput(true)
+      setKeyDraft(aiKey)
+      setOpen(true)
+    }, 800)
+  }
+  function handleLongPressEnd() {
+    if (longPressTimer.current) clearTimeout(longPressTimer.current)
+  }
+
   return (
     <>
       {/* Floating button — always visible */}
       <button
         onClick={() => setOpen(true)}
         onContextMenu={e => { e.preventDefault(); setShowKeyInput(true); setKeyDraft(aiKey); setOpen(true); }}
-        onTouchStart={() => { const t = setTimeout(() => { setShowKeyInput(true); setKeyDraft(aiKey); setOpen(true); }, 800); const cleanup = () => clearTimeout(t); window.addEventListener('touchend', cleanup, {once:true}); }}
+        onTouchStart={handleLongPressStart}
+        onTouchEnd={handleLongPressEnd}
         style={{
           position: 'fixed', bottom: 88, right: 16, zIndex: 50,
           width: 54, height: 54, borderRadius: '50%', border: 'none',

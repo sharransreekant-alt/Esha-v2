@@ -92,7 +92,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     ]
     // Load shared settings (AI key etc)
     const settingsSub = onSnapshot(doc(db, 'esha_settings', 'config'),
-      snap => { if (snap.exists()) set({ aiKey: snap.data().aiKey || '' }) },
+      snap => { if (snap.exists()) { const d = snap.data(); if (d) set({ aiKey: d.aiKey || '' }) } },
       () => {}
     )
 
