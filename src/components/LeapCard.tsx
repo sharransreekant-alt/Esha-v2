@@ -120,7 +120,7 @@ export function LeapCard() {
   if (status.phase === 'complete' || !status.currentLeap) return null
 
   const leap  = status.currentLeap
-  const phase = status.phase
+  const phase = status.phase as 'fussy' | 'skills'
   const isFussy = phase === 'fussy'
 
   return (
