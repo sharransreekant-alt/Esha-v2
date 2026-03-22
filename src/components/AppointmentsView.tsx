@@ -1,26 +1,9 @@
 import React, { useState } from 'react'
 import { useApp } from '../context/AppContext'
+import { Appointment } from '../types'
 import { APPOINTMENT_TEMPLATES } from '../utils/appointments'
 import { ESHA_BORN } from '../types'
 import { toDate } from '../utils/helpers'
-
-export interface Appointment {
-  id:          string
-  type:        string
-  icon:        string
-  date:        string        // ISO date string YYYY-MM-DD
-  time?:       string        // HH:MM
-  location?:   string
-  doctor?:     string
-  questions:   string[]      // agenda — editable
-  completed:   boolean
-  outcome?:    string        // notes after the appointment
-  weight?:     number        // grams if measured
-  vaccines?:   string        // comma-separated
-  followUp?:   string        // next steps
-  loggedBy:    string
-  createdAt:   string
-}
 
 // ── Shared styles ──────────────────────────────────────────────
 const CARD: React.CSSProperties = {
@@ -160,9 +143,12 @@ Focus on what parents most commonly miss or forget to ask at this type of appoin
           </div>
           {questions.map((q, i) => (
             <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 7, alignItems: 'flex-start' }}>
-              <div style={{ marginTop: 13, fontSize: 12, color: 'var(--muted)', fontWeight: 800, flexShrink: 0 }}>{i + 1}.</div>
-              <input className="finput" value={q} onChange={e => setQuestions(qs => qs.map((x, j) => j === i ? e.target.value : x))} style={{ flex: 1, fontSize: 13, padding: '10px 12px' }} />
-              <button onClick={() => setQuestions(qs => qs.filter((_, j) => j !== i))} style={{ marginTop: 8, background: 'var(--red-s)', border: '1px solid rgba(224,90,69,0.2)', color: 'var(--red)', fontSize: 10, fontWeight: 800, padding: '4px 8px', borderRadius: 6, cursor: 'pointer', flexShrink: 0 }}>✕</button>
+              <div style={{ marginTop: 10, fontSize: 12, color: 'var(--muted)', fontWeight: 800, flexShrink: 0 }}>{i + 1}.</div>
+              <textarea className="finput" value={q} rows={2}
+                onChange={e => setQuestions(qs => qs.map((x, j) => j === i ? e.target.value : x))}
+                style={{ flex: 1, fontSize: 13, padding: '10px 12px', minHeight: 44, resize: 'none', lineHeight: 1.4 }} />
+              <button onClick={() => setQuestions(qs => qs.filter((_, j) => j !== i))}
+                style={{ marginTop: 6, background: 'var(--red-s)', border: '1px solid rgba(224,90,69,0.2)', color: 'var(--red)', fontSize: 10, fontWeight: 800, padding: '4px 8px', borderRadius: 6, cursor: 'pointer', flexShrink: 0 }}>✕</button>
             </div>
           ))}
           <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>

@@ -1,12 +1,11 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import type { Appointment } from '../components/AppointmentsView'
 import {
   collection, addDoc, deleteDoc, updateDoc, doc, setDoc,
   query, orderBy, onSnapshot, Timestamp, writeBatch
 } from 'firebase/firestore'
 import { db } from '../firebase'
 import {
-  Entry, GrowthEntry, JournalEntry, HandoverEntry,
+  Entry, GrowthEntry, JournalEntry, HandoverEntry, Appointment,
   View, FEED_CYCLE_MS, REMIND_AT_MS
 } from '../types'
 import { toDate } from '../utils/helpers'
