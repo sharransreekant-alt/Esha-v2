@@ -172,7 +172,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const refresh = () => set(s => ({ ...s, loading: true, refreshKey: s.refreshKey + 1 }))
+  const refresh = () => setState(s => ({ ...s, loading: true, refreshKey: s.refreshKey + 1 }))
 
   const saveAiKey = async (key: string) => {
     await setDoc(doc(db, 'esha_settings', 'config'), { aiKey: key }, { merge: true })
