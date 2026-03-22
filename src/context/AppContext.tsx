@@ -98,18 +98,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       onSnapshot(query(collection(db, 'esha_handover'), orderBy('timestamp', 'desc')),
         snap => { set({ handovers: snap.docs.map(d => ({ id: d.id, ...d.data() } as HandoverEntry)) }); loaded.handover = true },
         () => { loaded.handover = true }),
+      onSnapshot(query(collection(db, 'esha_appointments'), orderBy('createdAt', 'desc')),
+        snap => { set({ appointments: snap.docs.map(d => ({ id: d.id, ...d.data() } as Appointment)) }) },
+        () => {}
+      ),
+      onSnapshot(doc(db, 'esha_settings', 'config'),
+        snap => { if (snap.exists()) { const d = snap.data(); if (d) set({ aiKey: d.aiKey || '' }) } },
+        () => {}
+      ),
     ]
-    onSnapshot(query(collection(db, 'esha_appointments'), orderBy('createdAt', 'desc')),
-      snap => { set({ appointments: snap.docs.map(d => ({ id: d.id, ...d.data() } as Appointment)) }) },
-      () => {}
-    )
-    // Load shared settings (AI key etc)
-    const settingsSub = onSnapshot(doc(db, 'esha_settings', 'config'),
-      snap => { if (snap.exists()) { const d = snap.data(); if (d) set({ aiKey: d.aiKey || '' }) } },
-      () => {}
-    )
 
-    return () => { clearTimeout(t); unsubs.forEach(u => u()); settingsSub() }
+    return () => { clearTimeout(t); unsubs.forEach(u => u()) }
   }, [state.who, state.refreshKey, set])
 
   // Helpers
@@ -182,11 +181,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  function stripUndefined(obj: Record<string, any>): Record<string, any> {
+    return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined && v !== null))
+  }
   const saveAppointment = async (data: Partial<Appointment>) => {
-    await addDoc(collection(db, 'esha_appointments'), { ...data, createdAt: new Date().toISOString() })
+    const payload = stripUndefined({ ...data } as Record<string, any>)
+    if (!payload.createdAt) payload.createdAt = new Date().toISOString()
+    await addDoc(collection(db, 'esha_appointments'), payload)
   }
   const updateAppointment = async (id: string, data: Partial<Appointment>) => {
-    await updateDoc(doc(db, 'esha_appointments', id), data as any)
+    await updateDoc(doc(db, 'esha_appointments', id), stripUndefined(data as Record<string, any>))
   }
   const removeAppointment = (id: string) => deleteDoc(doc(db, 'esha_appointments', id))
 

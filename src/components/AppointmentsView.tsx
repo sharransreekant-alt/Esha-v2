@@ -79,9 +79,17 @@ Focus on what parents most commonly miss or forget to ask at this type of appoin
     if (!date) { alert('Pick a date'); return }
     setSaving(true)
     try {
-      await onSave({ type, icon: template?.icon || '📋', date, time: time || undefined, location: location || undefined, doctor: doctor || undefined, questions, completed: initial?.completed || false, loggedBy: who, createdAt: new Date().toISOString() })
+      const data: Record<string, any> = { type, icon: template?.icon || '📋', date, questions, completed: initial?.completed || false, loggedBy: who, createdAt: new Date().toISOString() }
+      if (time)     data.time     = time
+      if (location) data.location = location
+      if (doctor)   data.doctor   = doctor
+      await onSave(data as any)
       onClose()
-    } catch { setSaving(false) }
+    } catch (e: any) {
+      console.error('Save error:', e)
+      alert('Save failed: ' + (e?.message || 'Unknown error'))
+      setSaving(false)
+    }
   }
 
   return (
