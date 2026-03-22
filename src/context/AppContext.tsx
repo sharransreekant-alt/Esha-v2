@@ -23,6 +23,7 @@ interface AppState {
   handoverSeen:   number
   notifPermission: NotificationPermission | 'unsupported'
   aiKey:          string
+  refreshKey:     number
 }
 
 interface AppContextValue extends AppState {
@@ -46,6 +47,7 @@ interface AppContextValue extends AppState {
   nextFeedIn:    () => number | null
   hasUnreadHandover: () => boolean
   saveAiKey:     (key: string) => Promise<void>
+  refresh:       () => void
 }
 
 const Ctx = createContext<AppContextValue | null>(null)
@@ -61,6 +63,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     handoverSeen: parseInt(localStorage.getItem('handoverSeen') || '0'),
     notifPermission: typeof Notification !== 'undefined' ? Notification.permission : 'unsupported',
     aiKey: '',
+    refreshKey: 0,
   })
 
   const set = useCallback((patch: Partial<AppState>) =>
@@ -97,7 +100,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     )
 
     return () => { clearTimeout(t); unsubs.forEach(u => u()); settingsSub() }
-  }, [state.who, set])
+  }, [state.who, state.refreshKey, set])
 
   // Helpers
   const lastFeed = useCallback((): Date | null => {
@@ -169,6 +172,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const refresh = () => set(s => ({ ...s, loading: true, refreshKey: s.refreshKey + 1 }))
+
   const saveAiKey = async (key: string) => {
     await setDoc(doc(db, 'esha_settings', 'config'), { aiKey: key }, { merge: true })
     set({ aiKey: key })
@@ -204,6 +209,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       requestNotifPermission,
       reminderActive, nextFeedIn, hasUnreadHandover,
       saveAiKey,
+      refresh,
     }}>
       {children}
     </Ctx.Provider>

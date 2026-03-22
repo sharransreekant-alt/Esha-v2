@@ -14,13 +14,23 @@ import { JournalView } from './components/JournalView'
 import { HandoverView } from './components/HandoverView'
 import { AskAI } from './components/AskAI'
 import { EveningSummary } from './components/EveningSummary'
+import { PullToRefresh } from './components/PullToRefresh'
 
 function AppShell() {
   const {
     who, view, loading,
     handovers, hasUnreadHandover, setView,
-    eveningSeen, markEveningSeen,
+    eveningSeen, markEveningSeen, refresh,
   } = useApp()
+
+  // Auto-refresh when app comes back to foreground (fixes iOS PWA stale data)
+  useEffect(() => {
+    function handleVisibility() {
+      if (document.visibilityState === 'visible') refresh()
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
+  }, [refresh])
 
   const [showEvening, setShowEvening] = useState(false)
 
@@ -65,15 +75,17 @@ function AppShell() {
         </div>
       )}
 
-      {/* Views */}
-      {view === 'home'     && <LogView />}
-      {view === 'today'    && <TodayView />}
-      {view === 'history'  && <HistoryView />}
-      {view === 'more'     && <MoreView />}
-      {view === 'growth'   && <GrowthView />}
-      {view === 'insights' && <InsightsView />}
-      {view === 'journal'  && <JournalView />}
-      {view === 'handover' && <HandoverView />}
+      {/* Views — wrapped in pull-to-refresh */}
+      <PullToRefresh>
+        {view === 'home'     && <LogView />}
+        {view === 'today'    && <TodayView />}
+        {view === 'history'  && <HistoryView />}
+        {view === 'more'     && <MoreView />}
+        {view === 'growth'   && <GrowthView />}
+        {view === 'insights' && <InsightsView />}
+        {view === 'journal'  && <JournalView />}
+        {view === 'handover' && <HandoverView />}
+      </PullToRefresh>
 
       {/* Evening summary */}
       {showEvening && <EveningSummary onClose={closeEvening} />}
