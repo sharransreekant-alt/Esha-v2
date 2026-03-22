@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import type { Appointment } from '../components/AppointmentsView'
 import {
   collection, addDoc, deleteDoc, updateDoc, doc, setDoc,
   query, orderBy, onSnapshot, Timestamp, writeBatch
@@ -24,6 +25,7 @@ interface AppState {
   notifPermission: NotificationPermission | 'unsupported'
   aiKey:          string
   refreshKey:     number
+  appointments:   Appointment[]
 }
 
 interface AppContextValue extends AppState {
@@ -47,7 +49,11 @@ interface AppContextValue extends AppState {
   nextFeedIn:    () => number | null
   hasUnreadHandover: () => boolean
   saveAiKey:     (key: string) => Promise<void>
-  refresh:       () => void
+  refresh:            () => void
+  appointments:       Appointment[]
+  saveAppointment:    (data: Partial<Appointment>) => Promise<void>
+  updateAppointment:  (id: string, data: Partial<Appointment>) => Promise<void>
+  removeAppointment:  (id: string) => Promise<void>
 }
 
 const Ctx = createContext<AppContextValue | null>(null)
@@ -64,6 +70,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     notifPermission: typeof Notification !== 'undefined' ? Notification.permission : 'unsupported',
     aiKey: '',
     refreshKey: 0,
+    appointments: [],
   })
 
   const set = useCallback((patch: Partial<AppState>) =>
@@ -93,6 +100,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         snap => { set({ handovers: snap.docs.map(d => ({ id: d.id, ...d.data() } as HandoverEntry)) }); loaded.handover = true },
         () => { loaded.handover = true }),
     ]
+    onSnapshot(query(collection(db, 'esha_appointments'), orderBy('createdAt', 'desc')),
+      snap => { set({ appointments: snap.docs.map(d => ({ id: d.id, ...d.data() } as Appointment)) }) },
+      () => {}
+    )
     // Load shared settings (AI key etc)
     const settingsSub = onSnapshot(doc(db, 'esha_settings', 'config'),
       snap => { if (snap.exists()) { const d = snap.data(); if (d) set({ aiKey: d.aiKey || '' }) } },
@@ -172,6 +183,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const saveAppointment = async (data: Partial<Appointment>) => {
+    await addDoc(collection(db, 'esha_appointments'), { ...data, createdAt: new Date().toISOString() })
+  }
+  const updateAppointment = async (id: string, data: Partial<Appointment>) => {
+    await updateDoc(doc(db, 'esha_appointments', id), data as any)
+  }
+  const removeAppointment = (id: string) => deleteDoc(doc(db, 'esha_appointments', id))
+
   const refresh = () => setState(s => ({ ...s, loading: true, refreshKey: s.refreshKey + 1 }))
 
   const saveAiKey = async (key: string) => {
@@ -210,6 +229,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       reminderActive, nextFeedIn, hasUnreadHandover,
       saveAiKey,
       refresh,
+      appointments: state.appointments,
+      saveAppointment, updateAppointment, removeAppointment,
     }}>
       {children}
     </Ctx.Provider>

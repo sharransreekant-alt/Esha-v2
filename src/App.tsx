@@ -12,9 +12,9 @@ import { GrowthView } from './components/GrowthView'
 import { InsightsView } from './components/InsightsView'
 import { JournalView } from './components/JournalView'
 import { HandoverView } from './components/HandoverView'
+import { AppointmentsView } from './components/AppointmentsView'
 import { AskAI } from './components/AskAI'
 import { EveningSummary } from './components/EveningSummary'
-import { PullToRefresh } from './components/PullToRefresh'
 
 function AppShell() {
   const {
@@ -55,7 +55,7 @@ function AppShell() {
   // Loading
   if (loading) return <div className="spin" />
 
-  const subViews = ['growth', 'insights', 'journal', 'handover']
+  const subViews = ['growth', 'insights', 'journal', 'handover', 'appointments']
   const isSubView = subViews.includes(view)
   const unread = hasUnreadHandover()
 
@@ -75,17 +75,16 @@ function AppShell() {
         </div>
       )}
 
-      {/* Views — wrapped in pull-to-refresh */}
-      <PullToRefresh>
-        {view === 'home'     && <LogView />}
+      {/* Views */}
+      {view === 'home'     && <LogView />}
         {view === 'today'    && <TodayView />}
         {view === 'history'  && <HistoryView />}
         {view === 'more'     && <MoreView />}
         {view === 'growth'   && <GrowthView />}
         {view === 'insights' && <InsightsView />}
         {view === 'journal'  && <JournalView />}
-        {view === 'handover' && <HandoverView />}
-      </PullToRefresh>
+        {view === 'handover'     && <HandoverView />}
+        {view === 'appointments' && <AppointmentsView />}
 
       {/* Evening summary */}
       {showEvening && <EveningSummary onClose={closeEvening} />}

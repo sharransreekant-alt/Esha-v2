@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext'
 import { eshaAge, timeSince, timeUntil, toDate } from '../utils/helpers'
 
 export function Header() {
-  const { who, setWho, entries, reminderActive, nextFeedIn, dismissReminder } = useApp()
+  const { who, setWho, entries, reminderActive, nextFeedIn, dismissReminder, refresh, loading } = useApp()
   const fileRef = useRef<HTMLInputElement>(null)
 
   const lastFeedEntry = entries.find(e => e.type === 'feed')
@@ -111,6 +111,16 @@ export function Header() {
               </span>
             </div>
           </div>
+
+          {/* Refresh */}
+          <button
+            onClick={refresh}
+            disabled={loading}
+            style={{ background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.5)', borderRadius: '50%', width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, fontSize: 15, transition: 'transform 0.3s', transform: loading ? 'rotate(180deg)' : 'none' }}
+            title="Refresh"
+          >
+            🔄
+          </button>
 
           {/* Who */}
           <div onClick={() => {

@@ -5,7 +5,7 @@ import { timeSince } from '../utils/helpers'
 import { toDate } from '../utils/helpers'
 
 export function MoreView() {
-  const { setView, growth, journal, handovers, hasUnreadHandover, importEntries } = useApp()
+  const { setView, growth, journal, handovers, hasUnreadHandover, importEntries, appointments } = useApp()
   const fileRef = useRef<HTMLInputElement>(null)
 
   const lastGrowthDaysAgo = () => {
@@ -16,7 +16,10 @@ export function MoreView() {
   const unread  = hasUnreadHandover()
   const latest  = handovers[0]
 
+  const apptCount = appointments.filter(a => !a.completed).length
+
   const cards: { id: View; icon: string; name: string; sub: string }[] = [
+    { id: 'appointments', icon: '🏥', name: 'Appointments', sub: apptCount > 0 ? `${apptCount} upcoming` : 'None scheduled' },
     { id: 'growth',   icon: '📏', name: 'Growth',   sub: daysAgo === null ? 'Not started yet' : daysAgo === 0 ? 'Logged today' : `Last: ${daysAgo}d ago` },
     { id: 'insights', icon: '📊', name: 'Insights', sub: 'Feeding patterns' },
     { id: 'journal',  icon: '📖', name: 'Journal',  sub: `${journal.length} entr${journal.length === 1 ? 'y' : 'ies'}` },
