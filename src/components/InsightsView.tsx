@@ -1,7 +1,6 @@
 import React from 'react'
 import { useApp } from '../context/AppContext'
 import { toDate, feedVolume } from '../utils/helpers'
-import { GOALS } from '../types'
 
 function computeInsights(entries: ReturnType<typeof useApp>['entries']) {
   const feeds = entries.filter(e => e.type === 'feed')
@@ -88,7 +87,7 @@ export function InsightsView() {
       {ins && !ins.notEnough && (
         <>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginBottom: 16 }}>
-            {card('Avg feeds / day',      '🍼', String(ins.avgFeeds!), `Goal: ${GOALS.feed} per day · last 7 days`)}
+            {card('Avg feeds / day',      '🍼', String(ins.avgFeeds!), `Goal: 8 per day · last 7 days`)}
             {ins.avgGap     !== null && card('Avg gap between feeds', '⏱', fmtMin(ins.avgGap!),     'Target: 3 hours')}
             {ins.longestGap !== null && card('Longest feed gap',      '😴', fmtMin(ins.longestGap!), 'Best indicator of longer sleep stretches')}
             {ins.avgMl      !== null && ins.avgMl! > 0 && card('Avg ml / day', '🍶', `${ins.avgMl}ml`, 'Expressed + formula · last 7 days')}

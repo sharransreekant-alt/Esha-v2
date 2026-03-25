@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
-import { GOALS, Entry } from '../types'
+import { Entry } from '../types'
 import { eshaAge, toDate, feedVolume, feedDetail } from '../utils/helpers'
 import { getLeapStatus, leapContextForAI } from '../utils/leaps'
 import { getMilestoneForAge } from '../utils/milestones'
@@ -56,10 +56,10 @@ Age: ${age}
 Date: ${new Date().toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
 
 TODAY:
-- Feeds: ${feeds.length}/${GOALS.feed}${totalMl > 0 ? ` (${totalMl}ml)` : ''}${feedSummary ? `\n  ${feedSummary}` : ''}
-- Wees: ${wees.length}/${GOALS.wee}
-- Poos: ${poos.length}/${GOALS.poo}
-- Massages: ${massages.length}/${GOALS.massage}
+- Feeds: ${feeds.length} today${totalMl > 0 ? ` (${totalMl}ml)` : ''}${feedSummary ? `\n  ${feedSummary}` : ''}
+- Wees: ${wees.length} today
+- Poos: ${poos.length} today
+- Massages: ${massages.length} today
 - Vitamin D: ${vitD.length > 0 ? 'Done ✓' : 'Not yet'}
 - Last feed: ${lastFeedAgo !== null ? `${lastFeedAgo} mins ago` : 'No feeds today'}
 
