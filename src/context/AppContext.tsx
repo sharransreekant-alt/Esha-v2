@@ -8,6 +8,7 @@ import {
   Entry, GrowthEntry, JournalEntry, HandoverEntry, Appointment,
   View, FEED_CYCLE_MS, REMIND_AT_MS
 } from '../types'
+import { GoalSet, DEFAULT_GOALS } from '../utils/milestones'
 import { toDate } from '../utils/helpers'
 
 interface AppState {
@@ -25,6 +26,7 @@ interface AppState {
   aiKey:          string
   refreshKey:     number
   appointments:   Appointment[]
+  activeGoals:    GoalSet
 }
 
 interface AppContextValue extends AppState {
@@ -53,6 +55,8 @@ interface AppContextValue extends AppState {
   saveAppointment:    (data: Partial<Appointment>) => Promise<void>
   updateAppointment:  (id: string, data: Partial<Appointment>) => Promise<void>
   removeAppointment:  (id: string) => Promise<void>
+  activeGoals:        GoalSet
+  acceptGoalUpdate:   (goals: GoalSet) => Promise<void>
 }
 
 const Ctx = createContext<AppContextValue | null>(null)
@@ -70,6 +74,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     aiKey: '',
     refreshKey: 0,
     appointments: [],
+    activeGoals: DEFAULT_GOALS,
   })
 
   const set = useCallback((patch: Partial<AppState>) =>
@@ -103,7 +108,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         () => {}
       ),
       onSnapshot(doc(db, 'esha_settings', 'config'),
-        snap => { if (snap.exists()) { const d = snap.data(); if (d) set({ aiKey: d.aiKey || '' }) } },
+        snap => { if (snap.exists()) { const d = snap.data(); if (d) set({ aiKey: d.aiKey || '', activeGoals: d.activeGoals || DEFAULT_GOALS }) } },
         () => {}
       ),
     ]
@@ -196,6 +201,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const refresh = () => setState(s => ({ ...s, loading: true, refreshKey: s.refreshKey + 1 }))
 
+  const acceptGoalUpdate = async (goals: GoalSet) => {
+    await setDoc(doc(db, 'esha_settings', 'config'), { activeGoals: goals }, { merge: true })
+    set({ activeGoals: goals })
+  }
+
   const saveAiKey = async (key: string) => {
     await setDoc(doc(db, 'esha_settings', 'config'), { aiKey: key }, { merge: true })
     set({ aiKey: key })
@@ -232,6 +242,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       reminderActive, nextFeedIn, hasUnreadHandover,
       saveAiKey,
       refresh,
+      activeGoals: state.activeGoals,
+      acceptGoalUpdate,
       appointments: state.appointments,
       saveAppointment, updateAppointment, removeAppointment,
     }}>

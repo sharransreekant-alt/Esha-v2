@@ -1,12 +1,11 @@
 import React from 'react'
 import { useApp } from '../context/AppContext'
-import { GOALS } from '../types'
 import { todayOnly, feedVolume } from '../utils/helpers'
 
 interface Props { onClose: () => void }
 
 export function EveningSummary({ onClose }: Props) {
-  const { entries } = useApp()
+  const { entries, activeGoals } = useApp()
   const td = todayOnly(entries)
 
   const counts = {
@@ -17,8 +16,9 @@ export function EveningSummary({ onClose }: Props) {
     vitaminD: td.filter(e => e.type === 'vitaminD').length,
   }
   const totalMl = td.reduce((s, e) => s + feedVolume(e), 0)
-  const allMet  = Object.keys(GOALS).every(k => counts[k as keyof typeof counts] >= GOALS[k as keyof typeof GOALS])
+  const allMet  = Object.keys(counts).every(k => { const g = (activeGoals as any)[k === 'feed' ? 'feedsPerDay' : k === 'wee' ? 'weesPerDay' : k === 'poo' ? 'poosPerDay' : k === 'massage' ? 'massagesPerDay' : 'vitaminDPerDay']; return g === -1 || counts[k as keyof typeof counts] >= g })
 
+  const goalKeyMap: Record<string, keyof typeof activeGoals> = { feed: 'feedsPerDay', wee: 'weesPerDay', poo: 'poosPerDay', massage: 'massagesPerDay', vitaminD: 'vitaminDPerDay' }
   const items = [
     { key: 'feed',     emoji: '🍼', label: 'Feeds',     bg: 'var(--feed-bg)', extra: totalMl ? ` · ${totalMl} ml` : '' },
     { key: 'wee',      emoji: '💧', label: 'Wees',      bg: 'var(--wee-bg)',  extra: '' },
@@ -39,7 +39,7 @@ export function EveningSummary({ onClose }: Props) {
         </p>
 
         {items.map(({ key, emoji, label, bg, extra }) => {
-          const goal = GOALS[key as keyof typeof GOALS]
+          const goal = activeGoals[goalKeyMap[key]] ?? 0
           const count = counts[key as keyof typeof counts]
           const met = count >= goal, part = !met && count > 0
           const bc = met ? 'var(--green-s)' : part ? 'var(--amber-s)' : 'var(--red-s)'

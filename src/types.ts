@@ -53,7 +53,6 @@ export interface HandoverEntry {
 
 export type View = 'home' | 'today' | 'history' | 'more' | 'growth' | 'insights' | 'journal' | 'handover' | 'askai' | 'appointments'
 
-export const GOALS = { feed: 8, wee: 6, poo: 3, massage: 4, vitaminD: 1 } as const
 
 export const FEED_LABELS: Record<FeedType, string> = {
   rightBreast: 'Right Breast',

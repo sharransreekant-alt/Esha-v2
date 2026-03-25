@@ -1,13 +1,13 @@
 import React, { useState } from 'react'
 import { useApp } from '../context/AppContext'
 import { EntryList } from './EntryList'
-import { GOALS, Entry } from '../types'
+import { Entry } from '../types'
 import { toDate, fmtDateLabel, feedVolume } from '../utils/helpers'
 
 interface DayGroup { label: string; items: Entry[] }
 
 export function HistoryView() {
-  const { entries } = useApp()
+  const { entries, activeGoals } = useApp()
   const [openDay, setOpenDay]   = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<Record<string, string>>({})
 
@@ -69,7 +69,7 @@ export function HistoryView() {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                   {pills.map(p => {
                     const c = counts[p.key as keyof typeof counts]
-                    const goal = GOALS[p.key as keyof typeof GOALS]
+                    const goalMap: Record<string,string> = { feed: 'feedsPerDay', wee: 'weesPerDay', poo: 'poosPerDay', massage: 'massagesPerDay', vitaminD: 'vitaminDPerDay' }; const goal = (activeGoals as any)[goalMap[p.key]] ?? 0
                     const met = c >= goal, part = !met && c > 0
                     return <span key={p.key} style={pillStyle(met, part)}>{p.emoji} {p.label}</span>
                   })}

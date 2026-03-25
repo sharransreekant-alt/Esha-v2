@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext'
 import { GOALS, Entry } from '../types'
 import { eshaAge, toDate, feedVolume, feedDetail } from '../utils/helpers'
 import { getLeapStatus, leapContextForAI } from '../utils/leaps'
+import { getMilestoneForAge } from '../utils/milestones'
 import { ESHA_BORN } from '../types'
 
 interface Message {
@@ -43,6 +44,12 @@ function buildContext(entries: Entry[], age: string): string {
   const feedSummary = feeds.map(f => feedDetail(f)).join('; ')
   const leapStatus = getLeapStatus(ESHA_BORN)
   const leapContext = leapContextForAI(leapStatus)
+  const milestone = getMilestoneForAge((Date.now() - ESHA_BORN.getTime()) / (7 * 24 * 60 * 60 * 1000))
+  const milestoneContext = `Age guidance (${milestone.label}):
+- Feed frequency: ${milestone.feedFreq}
+- Per feed volume: ${milestone.feedVolume}
+- Daily total: ${milestone.totalDailyMl}
+- Poo guidance: ${milestone.poosNote}`
 
   return `ESHA'S DATA:
 Age: ${age}
@@ -59,11 +66,13 @@ TODAY:
 PATTERNS:
 - Avg feed gap (last 7): ${avgGapMins !== null ? `${avgGapMins} mins` : 'Not enough data'}
 
-${leapContext}`.trim()
+${leapContext}
+
+${milestoneContext}`.trim()
 }
 
 export function AskAI() {
-  const { entries, aiKey, saveAiKey } = useApp()
+  const { entries, aiKey, saveAiKey, activeGoals } = useApp()
   const [open,     setOpen]     = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [input,    setInput]    = useState('')
