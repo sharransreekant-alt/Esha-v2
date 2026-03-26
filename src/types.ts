@@ -8,7 +8,7 @@ export interface FeedComponent {
   volume?:   number | null
 }
 
-export type EntryType = 'feed' | 'wee' | 'poo' | 'massage' | 'vitaminD' | 'note'
+export type EntryType = 'feed' | 'wee' | 'poo' | 'massage' | 'tummyTime' | 'vitaminD' | 'note'
 
 export interface Entry {
   id:         string
