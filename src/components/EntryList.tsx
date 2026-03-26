@@ -8,15 +8,17 @@ const ICO: Record<string, { icon: string; bg: string }> = {
   wee:       { icon: '💧', bg: 'var(--wee-bg)'  },
   poo:       { icon: '💩', bg: 'var(--poo-bg)'  },
   massage:   { icon: '🤲', bg: 'var(--mas-bg)'  },
+  tummyTime: { icon: '🏋️', bg: 'var(--feed-bg)' },
   vitaminD:  { icon: '☀️', bg: 'var(--vit-bg)'  },
   note:      { icon: '📝', bg: 'var(--note-bg)' },
 }
 
 function entryTitle(e: Entry): string {
-  if (e.type === 'feed') return 'Feed'
+  if (e.type === 'feed')      return 'Feed'
   if (e.type === 'wee')       return 'Wee'
   if (e.type === 'poo')       return 'Poo'
   if (e.type === 'massage')   return 'Massage'
+  if (e.type === 'tummyTime') return 'Tummy Time'
   if (e.type === 'vitaminD')  return 'Vitamin D'
   if (e.type === 'note')      return 'Note'
   return e.type

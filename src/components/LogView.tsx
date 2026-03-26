@@ -14,10 +14,11 @@ interface SimpleModalProps {
   onClose: () => void
   onSave: (t: string, notes: string, dur?: string) => Promise<void>
   hasDuration?: boolean
+  durationLabel?: string
   hasNotes?: boolean
 }
 
-function SimpleModal({ emoji, title, onClose, onSave, hasDuration, hasNotes = true }: SimpleModalProps) {
+function SimpleModal({ emoji, title, onClose, onSave, hasDuration, durationLabel, hasNotes = true }: SimpleModalProps) {
   const n = new Date()
   const [time,   setTime]   = useState(`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`)
   const [notes,  setNotes]  = useState('')
@@ -45,7 +46,7 @@ function SimpleModal({ emoji, title, onClose, onSave, hasDuration, hasNotes = tr
         {hasDuration && (
           <div className="fg">
             <label className="flbl">Duration (minutes)</label>
-            <input className="finput" type="number" inputMode="numeric" placeholder="e.g. 10" value={dur} onChange={e => setDur(e.target.value)} />
+            <input className="finput" type="number" inputMode="numeric" placeholder={durationLabel ? "e.g. 5" : "e.g. 10"} value={dur} onChange={e => setDur(e.target.value)} />
           </div>
         )}
         <div className="fg">
@@ -118,12 +119,13 @@ export function LogView() {
   }
 
   const actions = [
-    { emoji: '🍼', name: 'Feed',      sub: 'With live timer', bg: 'var(--feed-bg)',  action: () => setModal('feed') },
-    { emoji: '💧', name: 'Wee',       sub: 'Wet nappy',       bg: 'var(--wee-bg)',   action: () => setModal('wee') },
-    { emoji: '💩', name: 'Poo',       sub: 'Bowel movement',  bg: 'var(--poo-bg)',   action: () => setModal('poo') },
-    { emoji: '🤲', name: 'Massage',   sub: 'Log duration',    bg: 'var(--mas-bg)',   action: () => setModal('massage') },
-    { emoji: '☀️', name: 'Vitamin D', sub: 'Daily drop',      bg: 'var(--vit-bg)',   action: () => setModal('vitaminD') },
-    { emoji: '📝', name: 'Note',      sub: 'Anything else',   bg: 'var(--note-bg)', action: () => setModal('note') },
+    { emoji: '🍼', name: 'Feed',        sub: 'With live timer', bg: 'var(--feed-bg)',  action: () => setModal('feed') },
+    { emoji: '💧', name: 'Wee',         sub: 'Wet nappy',       bg: 'var(--wee-bg)',   action: () => setModal('wee') },
+    { emoji: '💩', name: 'Poo',         sub: 'Bowel movement',  bg: 'var(--poo-bg)',   action: () => setModal('poo') },
+    { emoji: '🤲', name: 'Massage',     sub: 'Log duration',    bg: 'var(--mas-bg)',   action: () => setModal('massage') },
+    { emoji: '🏋️', name: 'Tummy Time',  sub: 'Log minutes',     bg: 'var(--feed-bg)',  action: () => setModal('tummyTime') },
+    { emoji: '☀️', name: 'Vitamin D',   sub: 'Daily drop',      bg: 'var(--vit-bg)',   action: () => setModal('vitaminD') },
+    { emoji: '📝', name: 'Note',        sub: 'Anything else',   bg: 'var(--note-bg)', action: () => setModal('note') },
   ]
 
   return (
@@ -166,7 +168,8 @@ export function LogView() {
       )}
       {modal === 'wee'      && <SimpleModal emoji="💧" title="Log Wee"        onClose={close} onSave={(t,n)   => saveSimple('wee',      t, n)}    />}
       {modal === 'poo'      && <SimpleModal emoji="💩" title="Log Poo"        onClose={close} onSave={(t,n)   => saveSimple('poo',      t, n)}    />}
-      {modal === 'massage'  && <SimpleModal emoji="🤲" title="Log Massage"    onClose={close} onSave={(t,n,d) => saveSimple('massage',  t, n, d)} hasDuration />}
+      {modal === 'massage'   && <SimpleModal emoji="🤲" title="Log Massage"    onClose={close} onSave={(t,n,d) => saveSimple('massage',   t, n, d)} hasDuration />}
+      {modal === 'tummyTime' && <SimpleModal emoji="🏋️" title="Log Tummy Time" onClose={close} onSave={(t,n,d) => saveSimple('tummyTime', t, n, d)} hasDuration durationLabel="Duration (minutes)" />}
       {modal === 'vitaminD' && <SimpleModal emoji="☀️" title="Vitamin D Drop" onClose={close} onSave={(t,n)   => saveSimple('vitaminD', t, n)}    hasNotes={false} />}
       {modal === 'note'     && <SimpleModal emoji="📝" title="Add Note"       onClose={close} onSave={(t,n)   => saveSimple('note',     t, n)}    />}
     </div>

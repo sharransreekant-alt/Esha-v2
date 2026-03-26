@@ -17,7 +17,7 @@ export function TodayView() {
     poo:       td.filter(e => e.type === 'poo').length,
     massage:   td.filter(e => e.type === 'massage').length,
     vitaminD:  td.filter(e => e.type === 'vitaminD').length,
-    tummyTime: td.filter(e => e.type === 'massage').reduce((s, e) => s + (Number(e.duration) || 0), 0),
+    tummyTime: td.filter(e => e.type === 'tummyTime').reduce((s, e) => s + (Number(e.duration) || 0), 0),
   }
   const totalMl = td.reduce((s, e) => s + feedVolume(e), 0)
 
