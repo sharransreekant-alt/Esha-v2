@@ -155,13 +155,13 @@ Guidelines:
         return
       }
       const data = await res.json()
-      setMessages(m => {
-        const updated = [...m, { role: 'assistant', content: data.choices[0]?.message?.content || 'No response' }]
-        const trimmed = updated.slice(-10)
-        try { localStorage.setItem('esha_ai_chat', JSON.stringify(trimmed)) } catch {}
-        return trimmed
-      })
-    } catch {
+      setMessages((m) => [
+  ...m,
+  {
+    role: 'user' as const,
+    content: String(something)
+  }
+]);catch {
       setError('Network error — check your connection')
     }
     setLoading(false)

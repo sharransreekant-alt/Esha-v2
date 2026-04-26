@@ -102,18 +102,7 @@ export function Header() {
 
           {/* Right actions: refresh + who */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
-            <button
-              onClick={refresh}
-              disabled={loading}
-              title="Refresh"
-              style={{
-                width: 32, height: 32, borderRadius: '50%',
-                background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.5)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', fontSize: 14,
-                animation: loading ? 'spin 0.8s linear infinite' : 'none',
-              }}
-            >🔄</button>
+
 
             <div
               onClick={() => { const n = prompt('Your name:', who); if (n?.trim()) setWho(n.trim()) }}
