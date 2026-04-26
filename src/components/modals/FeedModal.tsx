@@ -5,7 +5,7 @@ import { fmtMs, nowInput, inputToDate } from '../../utils/helpers'
 interface Props {
   onSave:  (components: FeedComponent[], time: string, notes: string) => void
   onClose: () => void
-  initial?: { components: FeedComponent[]; time: string; notes: string }
+  initial?: { components: FeedComponent[]; date?: string; time: string; notes: string }
   isEdit?: boolean
 }
 
@@ -19,7 +19,8 @@ export function FeedModal({ onSave, onClose, initial, isEdit }: Props) {
   const [volVal, setVolVal]           = useState('')
   const [manualSide, setManualSide]   = useState<FeedType | null>(null)
   const [manualDur, setManualDur]     = useState('')
-  const [time, setTime]               = useState(initial?.time || nowInput())
+  const [date, setDate]               = useState(initial?.date ? initial.date.slice(0,10) : new Date().toISOString().slice(0,10))
+  const [time, setTime]               = useState(initial?.time ? initial.time.slice(0,5) : nowInput())
   const [notes, setNotes]             = useState(initial?.notes || '')
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -75,7 +76,7 @@ export function FeedModal({ onSave, onClose, initial, isEdit }: Props) {
       comps = [...comps, { feedType: activeSide, duration: mins }]
     }
     if (!comps.length) { alert('Add at least one feed component'); return }
-    onSave(comps, time, notes)
+    onSave(comps, date + 'T' + time, notes)
   }
 
   const s: React.CSSProperties = {
@@ -174,10 +175,14 @@ export function FeedModal({ onSave, onClose, initial, isEdit }: Props) {
 
         {/* Time & notes */}
         <div className="fg">
-          <label className="flbl">Time started</label>
+          <label className="flbl">Date &amp; time started</label>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+            <input className="finput" type="date" style={{ flex: 1 }} value={date} onChange={e => setDate(e.target.value)} />
+          </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <input className="finput" type="time" style={{ flex: 1 }} value={time} onChange={e => setTime(e.target.value)} />
-            <button onClick={() => setTime(nowInput())} style={{ padding: '0 14px', background: 'var(--cream2)', border: '1.5px solid var(--border)', borderRadius: 'var(--r-sm)', color: 'var(--text-med)', fontSize: 13, fontWeight: 700 }}>Now</button>
+            <button onClick={() => { setDate(new Date().toISOString().slice(0,10)); setTime(nowInput()) }}
+              style={{ padding: '0 14px', background: 'var(--cream2)', border: '1.5px solid var(--border)', borderRadius: 'var(--r-sm)', color: 'var(--text-med)', fontSize: 13, fontWeight: 700 }}>Now</button>
           </div>
         </div>
         <div className="fg">

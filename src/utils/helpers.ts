@@ -45,6 +45,12 @@ export function nowInput(): string {
 }
 
 export function inputToDate(v: string): Date {
+  // Handles "HH:MM", "YYYY-MM-DDTHH:MM", or full ISO string
+  if (v.includes('T')) {
+    const d = new Date(v)
+    if (!isNaN(d.getTime())) return d
+  }
+  // Legacy: just a time string HH:MM — use today's date
   const [h, m] = v.split(':').map(Number)
   const d = new Date()
   d.setHours(h, m, 0, 0)

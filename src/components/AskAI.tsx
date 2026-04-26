@@ -74,7 +74,12 @@ ${milestoneContext}`.trim()
 export function AskAI() {
   const { entries, aiKey, saveAiKey, activeGoals } = useApp()
   const [open,     setOpen]     = useState(false)
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<Message[]>(() => {
+    try {
+      const saved = localStorage.getItem('esha_ai_chat')
+      return saved ? JSON.parse(saved) : []
+    } catch { return [] }
+  })
   const [input,    setInput]    = useState('')
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState('')
@@ -102,7 +107,12 @@ export function AskAI() {
     if (!aiKey) { setShowKeyInput(true); return }
 
     const userMsg: Message = { role: 'user', content: text }
-    setMessages(m => [...m, userMsg])
+    setMessages(m => {
+      const updated = [...m, userMsg]
+      const trimmed = updated.slice(-10)
+      try { localStorage.setItem('esha_ai_chat', JSON.stringify(trimmed)) } catch {}
+      return trimmed
+    })
     setInput('')
     setLoading(true)
     setError('')
@@ -145,7 +155,12 @@ Guidelines:
         return
       }
       const data = await res.json()
-      setMessages(m => [...m, { role: 'assistant', content: data.choices[0]?.message?.content || 'No response' }])
+      setMessages(m => {
+        const updated = [...m, { role: 'assistant', content: data.choices[0]?.message?.content || 'No response' }]
+        const trimmed = updated.slice(-10)
+        try { localStorage.setItem('esha_ai_chat', JSON.stringify(trimmed)) } catch {}
+        return trimmed
+      })
     } catch {
       setError('Network error — check your connection')
     }
@@ -216,7 +231,11 @@ Guidelines:
             <div style={{ fontFamily: 'Comfortaa, sans-serif', fontSize: 16, fontWeight: 700 }}>
               🤖 Ask about Esha
             </div>
-            <div style={{ width: 60 }} /> {/* spacer to centre title */}
+            <button onClick={() => { setMessages([]); try { localStorage.removeItem('esha_ai_chat') } catch {} }}
+              style={{ background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.5)', borderRadius: 20, padding: '6px 12px', fontSize: 12, fontWeight: 800, color: 'var(--text-med)', cursor: 'pointer' }}
+              title="Clear chat history">
+              Clear
+            </button>
           </div>
 
           {/* API key setup banner */}

@@ -41,7 +41,7 @@ export const MILESTONES: Milestone[] = [
     weekEnd:   3,
     goals: {
       feedsPerDay:    10, weesPerDay: 6, poosPerDay:   3,
-      massagesPerDay: 4,  vitaminDPerDay: 1, tummyTimeMins: 5,
+      massagesPerDay: 1,  vitaminDPerDay: 1, tummyTimeMins: 5,
     },
     feedVolume:   '45–90ml per feed',
     totalDailyMl: '500–600ml per day (formula/expressed)',
@@ -68,7 +68,7 @@ export const MILESTONES: Milestone[] = [
     weekEnd:   6,
     goals: {
       feedsPerDay:    9, weesPerDay: 6, poosPerDay:   3,
-      massagesPerDay: 4, vitaminDPerDay: 1, tummyTimeMins: 10,
+      massagesPerDay: 1, vitaminDPerDay: 1, tummyTimeMins: 10,
     },
     feedVolume:   '60–120ml per feed',
     totalDailyMl: '540–720ml per day',
@@ -94,7 +94,7 @@ export const MILESTONES: Milestone[] = [
     weekEnd:   12,
     goals: {
       feedsPerDay:    8, weesPerDay: 6, poosPerDay:   -1,
-      massagesPerDay: 4, vitaminDPerDay: 1, tummyTimeMins: 15,
+      massagesPerDay: 1, vitaminDPerDay: 1, tummyTimeMins: 15,
     },
     feedVolume:   '90–150ml per feed',
     totalDailyMl: '720–900ml per day',
@@ -125,7 +125,7 @@ export const MILESTONES: Milestone[] = [
     weekEnd:   18,
     goals: {
       feedsPerDay:    7, weesPerDay: 6, poosPerDay:   -1,
-      massagesPerDay: 3, vitaminDPerDay: 1, tummyTimeMins: 20,
+      massagesPerDay: 1, vitaminDPerDay: 1, tummyTimeMins: 20,
     },
     feedVolume:   '120–180ml per feed',
     totalDailyMl: '840–1080ml per day',
@@ -156,7 +156,7 @@ export const MILESTONES: Milestone[] = [
     weekEnd:   26,
     goals: {
       feedsPerDay:    6, weesPerDay: 6, poosPerDay:   -1,
-      massagesPerDay: 2, vitaminDPerDay: 1, tummyTimeMins: 30,
+      massagesPerDay: 1, vitaminDPerDay: 1, tummyTimeMins: 30,
     },
     feedVolume:   '150–210ml per feed',
     totalDailyMl: '900–1200ml per day',
@@ -186,7 +186,7 @@ export const MILESTONES: Milestone[] = [
     weekEnd:   39,
     goals: {
       feedsPerDay:    5, weesPerDay: 6, poosPerDay: -1,
-      massagesPerDay: 2, vitaminDPerDay: 1, tummyTimeMins: 30,
+      massagesPerDay: 1, vitaminDPerDay: 1, tummyTimeMins: 30,
     },
     feedVolume:   '180–240ml per feed',
     totalDailyMl: '900–1080ml milk + solids starting',
@@ -239,7 +239,7 @@ export const DEFAULT_GOALS: GoalSet = {
   feedsPerDay:    10,
   weesPerDay:     6,
   poosPerDay:     3,
-  massagesPerDay: 4,
+  massagesPerDay: 1,
   vitaminDPerDay: 1,
   tummyTimeMins:  5,
 }

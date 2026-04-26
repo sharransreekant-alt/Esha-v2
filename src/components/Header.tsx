@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext'
 import { eshaAge, timeSince, timeUntil, toDate } from '../utils/helpers'
 
 export function Header() {
-  const { who, setWho, entries, reminderActive, nextFeedIn, dismissReminder, refresh, loading } = useApp()
+  const { who, setWho, entries, reminderActive, nextFeedIn, dismissReminder } = useApp()
   const fileRef = useRef<HTMLInputElement>(null)
 
   const lastFeedEntry = entries.find(e => e.type === 'feed')

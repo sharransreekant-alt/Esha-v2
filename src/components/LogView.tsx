@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext'
 import { EntryList } from './EntryList'
 import { FeedModal } from './modals/FeedModal'
 import { Entry, FeedComponent } from '../types'
-import { inputToDate, fmtTime } from '../utils/helpers'
+import { inputToDate, fmtTime, fmtMs } from '../utils/helpers'
 import { LeapCard } from './LeapCard'
 import { GuidanceCard } from './GuidanceCard'
 import { GoalUpdateCard } from './GoalUpdateCard'
@@ -20,6 +20,7 @@ interface SimpleModalProps {
 
 function SimpleModal({ emoji, title, onClose, onSave, hasDuration, durationLabel, hasNotes = true }: SimpleModalProps) {
   const n = new Date()
+  const [date,   setDate]   = useState(n.toISOString().slice(0,10))
   const [time,   setTime]   = useState(`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`)
   const [notes,  setNotes]  = useState('')
   const [dur,    setDur]    = useState('')
@@ -30,7 +31,7 @@ function SimpleModal({ emoji, title, onClose, onSave, hasDuration, durationLabel
     setSaving(true)
     setError('')
     try {
-      await onSave(time, notes, dur)
+      await onSave(date + 'T' + time, notes, dur)
     } catch (e: any) {
       console.error('Save failed:', e)
       setError('Save failed — check your connection')
@@ -50,11 +51,14 @@ function SimpleModal({ emoji, title, onClose, onSave, hasDuration, durationLabel
           </div>
         )}
         <div className="fg">
-          <label className="flbl">Time</label>
+          <label className="flbl">Date &amp; time</label>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+            <input className="finput" type="date" style={{ flex: 1 }} value={date} onChange={e => setDate(e.target.value)} />
+          </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <input className="finput" type="time" style={{ flex: 1 }} value={time} onChange={e => setTime(e.target.value)} />
             <button
-              onClick={() => { const now = new Date(); setTime(`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`) }}
+              onClick={() => { const now = new Date(); setDate(now.toISOString().slice(0,10)); setTime(`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`) }}
               style={{ padding: '0 14px', background: 'var(--cream2)', border: '1.5px solid var(--border)', borderRadius: 'var(--r-sm)', color: 'var(--text-med)', fontSize: 13, fontWeight: 700 }}
             >Now</button>
           </div>
@@ -70,6 +74,81 @@ function SimpleModal({ emoji, title, onClose, onSave, hasDuration, durationLabel
           {saving ? 'Saving…' : 'Save'}
         </button>
         <button className="btn-secondary" onClick={onClose} style={{ marginTop: 8 }} disabled={saving}>Cancel</button>
+      </div>
+    </div>
+  )
+}
+
+function TummyTimeModal({ onClose, onSave }: { onClose: () => void; onSave: (t: string, notes: string, dur: string) => Promise<void> }) {
+  const n = new Date()
+  const [date,    setDate]    = React.useState(n.toISOString().slice(0,10))
+  const [time,    setTime]    = React.useState(`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`)
+  const [manualDur, setManualDur] = React.useState('')
+  const [running, setRunning] = React.useState(false)
+  const [elapsed, setElapsed] = React.useState(0)
+  const [startMs, setStartMs] = React.useState<number | null>(null)
+  const [saving,  setSaving]  = React.useState(false)
+  const intervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
+
+  React.useEffect(() => {
+    if (running && startMs !== null) {
+      intervalRef.current = setInterval(() => setElapsed(Date.now() - startMs), 500)
+    } else {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+  }, [running, startMs])
+
+  function startTimer() { setRunning(true); setStartMs(Date.now() - elapsed) }
+  function pauseTimer() { setRunning(false) }
+  function resetTimer() { setRunning(false); setElapsed(0); setStartMs(null) }
+
+  async function handleSave() {
+    const mins = elapsed > 0 ? String(Math.max(1, Math.round(elapsed / 60000))) : manualDur.trim()
+    if (!mins || parseInt(mins) <= 0) { alert('Enter or time a duration'); return }
+    setSaving(true)
+    try { await onSave(date + 'T' + time, '', mins) } catch (e: any) { alert('Save failed'); setSaving(false) }
+  }
+
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(46,28,18,0.45)', zIndex: 100, display: 'flex', alignItems: 'flex-end', backdropFilter: 'blur(8px)' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--white)', borderRadius: 'var(--r) var(--r) 0 0', width: '100%', maxWidth: 430, margin: '0 auto', padding: '8px 20px 48px', boxShadow: '0 -8px 40px rgba(100,60,20,0.18)' }}>
+        <div style={{ width: 36, height: 4, background: '#e0d4cc', borderRadius: 2, margin: '12px auto 20px' }} />
+        <div style={{ fontFamily: 'Comfortaa, sans-serif', fontSize: 20, fontWeight: 700, textAlign: 'center', marginBottom: 20 }}>🏋️ Tummy Time</div>
+
+        {/* Timer */}
+        <div style={{ background: 'linear-gradient(135deg,var(--feed-bg),#c8e8ff)', borderRadius: 'var(--r-sm)', padding: 16, marginBottom: 14, textAlign: 'center' }}>
+          <div style={{ fontFamily: 'Comfortaa, sans-serif', fontSize: 48, fontWeight: 700, color: 'var(--text)', marginBottom: 12 }}>{fmtMs(elapsed)}</div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {!running
+              ? <button onClick={startTimer} style={{ flex: 2, padding: 12, background: 'var(--green)', color: '#fff', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 14, fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 14px rgba(62,184,118,0.3)' }}>▶ Start</button>
+              : <button onClick={pauseTimer} style={{ flex: 2, padding: 12, background: 'var(--red)',   color: '#fff', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 14, fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 14px rgba(224,90,69,0.3)' }}>⏸ Pause</button>
+            }
+            <button onClick={resetTimer} style={{ flex: 1, padding: 12, background: 'var(--cream2)', border: '1.5px solid var(--border)', borderRadius: 'var(--r-sm)', fontSize: 14, fontWeight: 700, color: 'var(--text-med)', cursor: 'pointer' }}>Reset</button>
+          </div>
+        </div>
+
+        {/* Manual entry */}
+        <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 6, textAlign: 'center' }}>Or enter manually</div>
+        <div className="fg">
+          <input className="finput" type="number" inputMode="numeric" placeholder="Duration in minutes" value={manualDur} onChange={e => setManualDur(e.target.value)} disabled={elapsed > 0} />
+        </div>
+
+        {/* Date & time */}
+        <div className="fg">
+          <label className="flbl">Date &amp; time</label>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+            <input className="finput" type="date" style={{ flex: 1 }} value={date} onChange={e => setDate(e.target.value)} />
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input className="finput" type="time" style={{ flex: 1 }} value={time} onChange={e => setTime(e.target.value)} />
+            <button onClick={() => { const now = new Date(); setDate(now.toISOString().slice(0,10)); setTime(`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`) }}
+              style={{ padding: '0 14px', background: 'var(--cream2)', border: '1.5px solid var(--border)', borderRadius: 'var(--r-sm)', color: 'var(--text-med)', fontSize: 13, fontWeight: 700 }}>Now</button>
+          </div>
+        </div>
+
+        <button className="btn-primary" onClick={handleSave} disabled={saving}>{saving ? 'Saving…' : `Save${elapsed > 0 ? ` (${Math.max(1, Math.round(elapsed/60000))} min)` : ''}`}</button>
+        <button className="btn-secondary" onClick={onClose} style={{ marginTop: 8 }}>Cancel</button>
       </div>
     </div>
   )
@@ -125,7 +204,6 @@ export function LogView() {
     { emoji: '🤲', name: 'Massage',     sub: 'Log duration',    bg: 'var(--mas-bg)',   action: () => setModal('massage') },
     { emoji: '🏋️', name: 'Tummy Time',  sub: 'Log minutes',     bg: 'var(--feed-bg)',  action: () => setModal('tummyTime') },
     { emoji: '☀️', name: 'Vitamin D',   sub: 'Daily drop',      bg: 'var(--vit-bg)',   action: () => setModal('vitaminD') },
-    { emoji: '📝', name: 'Note',        sub: 'Anything else',   bg: 'var(--note-bg)', action: () => setModal('note') },
   ]
 
   return (
@@ -169,9 +247,8 @@ export function LogView() {
       {modal === 'wee'      && <SimpleModal emoji="💧" title="Log Wee"        onClose={close} onSave={(t,n)   => saveSimple('wee',      t, n)}    />}
       {modal === 'poo'      && <SimpleModal emoji="💩" title="Log Poo"        onClose={close} onSave={(t,n)   => saveSimple('poo',      t, n)}    />}
       {modal === 'massage'   && <SimpleModal emoji="🤲" title="Log Massage"    onClose={close} onSave={(t,n,d) => saveSimple('massage',   t, n, d)} hasDuration />}
-      {modal === 'tummyTime' && <SimpleModal emoji="🏋️" title="Log Tummy Time" onClose={close} onSave={(t,n,d) => saveSimple('tummyTime', t, n, d)} hasDuration durationLabel="Duration (minutes)" />}
+      {modal === 'tummyTime' && <TummyTimeModal onClose={close} onSave={async (t,n,d) => { await saveSimple('tummyTime', t, n, d); }} />}
       {modal === 'vitaminD' && <SimpleModal emoji="☀️" title="Vitamin D Drop" onClose={close} onSave={(t,n)   => saveSimple('vitaminD', t, n)}    hasNotes={false} />}
-      {modal === 'note'     && <SimpleModal emoji="📝" title="Add Note"       onClose={close} onSave={(t,n)   => saveSimple('note',     t, n)}    />}
     </div>
   )
 }
