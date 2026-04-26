@@ -32,6 +32,7 @@ function buildContext(entries: Entry[], age: string): string {
   const lastFeedE  = entries.find(e => e.type === 'feed')
   const lastFeedAgo = lastFeedE ? Math.round((Date.now() - toDate(lastFeedE.timestamp).getTime()) / 60000) : null
   const recentFeeds = entries.filter(e => e.type === 'feed').slice(0, 7)
+  
   let avgGapMins: number | null = null
   if (recentFeeds.length >= 2) {
     const gaps: number[] = []
@@ -41,10 +42,12 @@ function buildContext(entries: Entry[], age: string): string {
     }
     if (gaps.length) avgGapMins = Math.round(gaps.reduce((s, g) => s + g, 0) / gaps.length)
   }
+  
   const feedSummary = feeds.map(f => feedDetail(f)).join('; ')
   const leapStatus = getLeapStatus(ESHA_BORN)
   const leapContext = leapContextForAI(leapStatus)
   const milestone = getMilestoneForAge((Date.now() - ESHA_BORN.getTime()) / (7 * 24 * 60 * 60 * 1000))
+  
   const milestoneContext = `Age guidance (${milestone.label}):
 - Feed frequency: ${milestone.feedFreq}
 - Per feed volume: ${milestone.feedVolume}
@@ -72,7 +75,7 @@ ${milestoneContext}`.trim()
 }
 
 export function AskAI() {
-  const { entries, aiKey, saveAiKey, activeGoals } = useApp()
+  const { entries, aiKey, saveAiKey } = useApp()
   const [open,     setOpen]     = useState(false)
   const [messages, setMessages] = useState<Message[]>(() => {
     try {
@@ -85,8 +88,10 @@ export function AskAI() {
   const [error,    setError]    = useState('')
   const [showKeyInput, setShowKeyInput] = useState(false)
   const [keyDraft, setKeyDraft] = useState('')
+  
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef  = useRef<HTMLInputElement>(null)
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (open) {
@@ -107,12 +112,11 @@ export function AskAI() {
     if (!aiKey) { setShowKeyInput(true); return }
 
     const userMsg: Message = { role: 'user', content: text }
-    setMessages(m => {
-      const updated = [...m, userMsg]
-      const trimmed = updated.slice(-10)
-      try { localStorage.setItem('esha_ai_chat', JSON.stringify(trimmed)) } catch {}
-      return trimmed
-    })
+    const updatedHistory = [...messages, userMsg].slice(-10)
+    
+    setMessages(updatedHistory)
+    try { localStorage.setItem('esha_ai_chat', JSON.stringify(updatedHistory)) } catch {}
+    
     setInput('')
     setLoading(true)
     setError('')
@@ -138,10 +142,11 @@ Guidelines:
           max_tokens: 500,
           messages: [
             { role: 'system', content: systemPrompt },
-            ...[...messages, userMsg].slice(-10),
+            ...updatedHistory,
           ],
         }),
       })
+
       if (!res.ok) {
         const err = await res.json()
         if (res.status === 401) {
@@ -151,40 +156,42 @@ Guidelines:
         } else {
           setError(err.error?.message || 'Something went wrong')
         }
-        setLoading(false)
         return
       }
-      const data = await res.json()
-     setMessages((m) => [
-  ...m,
-  {
-    role: 'user' as const,
-    content: String(input)
-  }
-]);try {
-  // logic
-} catch (err) {
-  console.error(err);
-}
 
-  const longPressTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+      const data = await res.json()
+      const assistantMsg: Message = { role: 'assistant', content: data.choices[0].message.content }
+      
+      setMessages(prev => {
+        const final = [...prev, assistantMsg].slice(-10)
+        try { localStorage.setItem('esha_ai_chat', JSON.stringify(final)) } catch {}
+        return final
+      })
+    } catch (err) {
+      console.error(err)
+      setError('Connection error. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   function handleLongPressStart() {
     longPressTimer.current = setTimeout(() => {
       setShowKeyInput(true)
-      setKeyDraft(aiKey)
+      setKeyDraft(aiKey || '')
       setOpen(true)
     }, 800)
   }
+
   function handleLongPressEnd() {
     if (longPressTimer.current) clearTimeout(longPressTimer.current)
   }
 
   return (
     <>
-      {/* Floating button — always visible */}
       <button
         onClick={() => setOpen(true)}
-        onContextMenu={e => { e.preventDefault(); setShowKeyInput(true); setKeyDraft(aiKey); setOpen(true); }}
+        onContextMenu={e => { e.preventDefault(); setShowKeyInput(true); setKeyDraft(aiKey || ''); setOpen(true); }}
         onTouchStart={handleLongPressStart}
         onTouchEnd={handleLongPressEnd}
         style={{
@@ -199,17 +206,14 @@ Guidelines:
         title="Ask about Esha (hold to update API key)"
       >
         <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-          {/* Chat bubble */}
           <path d="M4 6C4 4.895 4.895 4 6 4H22C23.105 4 24 4.895 24 6V17C24 18.105 23.105 19 22 19H15L10 24V19H6C4.895 19 4 18.105 4 17V6Z"
             fill="var(--coral)" opacity="0.9"/>
-          {/* Sparkle dots */}
           <circle cx="10" cy="12" r="1.5" fill="white"/>
           <circle cx="14" cy="12" r="1.5" fill="white"/>
           <circle cx="18" cy="12" r="1.5" fill="white"/>
         </svg>
       </button>
 
-      {/* Full-screen chat overlay */}
       {open && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 200,
@@ -217,7 +221,6 @@ Guidelines:
           display: 'flex', flexDirection: 'column',
           maxWidth: 430, margin: '0 auto',
         }}>
-          {/* Header */}
           <div style={{
             background: 'linear-gradient(135deg, var(--hdr-from), var(--hdr-to))',
             padding: '52px 16px 14px',
@@ -238,7 +241,6 @@ Guidelines:
             </button>
           </div>
 
-          {/* API key setup banner */}
           {(showKeyInput || !aiKey) && (
             <div style={{ background: 'var(--white)', borderBottom: '1px solid var(--border)', padding: '14px 16px', flexShrink: 0 }}>
               <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 4 }}>OpenAI API Key</div>
@@ -261,7 +263,6 @@ Guidelines:
             </div>
           )}
 
-          {/* Messages */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
             {messages.length === 0 && aiKey && (
               <div>
@@ -321,7 +322,6 @@ Guidelines:
             <div ref={bottomRef} />
           </div>
 
-          {/* Input bar */}
           {aiKey && !showKeyInput && (
             <div style={{ padding: '10px 16px 36px', background: 'var(--white)', borderTop: '1px solid var(--border)', flexShrink: 0 }}>
               <div style={{ display: 'flex', gap: 8 }}>
