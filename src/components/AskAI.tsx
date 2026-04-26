@@ -155,17 +155,17 @@ Guidelines:
         return
       }
       const data = await res.json()
-      setMessages((m) => [
+     setMessages((m) => [
   ...m,
   {
     role: 'user' as const,
-    content: String(something)
+    content: String(input)
   }
-]);catch {
-      setError('Network error — check your connection')
-    }
-    setLoading(false)
-  }
+]);try {
+  // logic
+} catch (err) {
+  console.error(err);
+}
 
   const longPressTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   function handleLongPressStart() {
