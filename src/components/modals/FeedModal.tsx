@@ -2,6 +2,11 @@ import React, { useState, useEffect, useRef } from 'react'
 import { FeedComponent, FeedType, FEED_LABELS, FEED_EMOJI } from '../../types'
 import { fmtMs, nowInput, inputToDate } from '../../utils/helpers'
 
+function localDateStr(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+}
+
 interface Props {
   onSave:  (components: FeedComponent[], time: string, notes: string) => void
   onClose: () => void
@@ -19,7 +24,7 @@ export function FeedModal({ onSave, onClose, initial, isEdit }: Props) {
   const [volVal, setVolVal]           = useState('')
   const [manualSide, setManualSide]   = useState<FeedType | null>(null)
   const [manualDur, setManualDur]     = useState('')
-  const [date, setDate]               = useState(initial?.date ? initial.date.slice(0,10) : new Date().toISOString().slice(0,10))
+  const [date, setDate]               = useState(initial?.date ? initial.date.slice(0,10) : localDateStr())
   const [time, setTime]               = useState(initial?.time ? initial.time.slice(0,5) : nowInput())
   const [notes, setNotes]             = useState(initial?.notes || '')
 
@@ -181,7 +186,7 @@ export function FeedModal({ onSave, onClose, initial, isEdit }: Props) {
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <input className="finput" type="time" style={{ flex: 1 }} value={time} onChange={e => setTime(e.target.value)} />
-            <button onClick={() => { setDate(new Date().toISOString().slice(0,10)); setTime(nowInput()) }}
+            <button onClick={() => { setDate(localDateStr()); setTime(nowInput()) }}
               style={{ padding: '0 14px', background: 'var(--cream2)', border: '1.5px solid var(--border)', borderRadius: 'var(--r-sm)', color: 'var(--text-med)', fontSize: 13, fontWeight: 700 }}>Now</button>
           </div>
         </div>

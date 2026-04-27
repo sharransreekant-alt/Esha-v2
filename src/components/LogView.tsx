@@ -4,6 +4,11 @@ import { EntryList } from './EntryList'
 import { FeedModal } from './modals/FeedModal'
 import { Entry, FeedComponent } from '../types'
 import { inputToDate, fmtTime, fmtMs } from '../utils/helpers'
+
+function localDateStr(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+}
 import { LeapCard } from './LeapCard'
 import { GuidanceCard } from './GuidanceCard'
 import { GoalUpdateCard } from './GoalUpdateCard'
@@ -20,7 +25,7 @@ interface SimpleModalProps {
 
 function SimpleModal({ emoji, title, onClose, onSave, hasDuration, durationLabel, hasNotes = true }: SimpleModalProps) {
   const n = new Date()
-  const [date,   setDate]   = useState(n.toISOString().slice(0,10))
+  const [date,   setDate]   = useState(localDateStr())
   const [time,   setTime]   = useState(`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`)
   const [notes,  setNotes]  = useState('')
   const [dur,    setDur]    = useState('')
@@ -58,7 +63,7 @@ function SimpleModal({ emoji, title, onClose, onSave, hasDuration, durationLabel
           <div style={{ display: 'flex', gap: 8 }}>
             <input className="finput" type="time" style={{ flex: 1 }} value={time} onChange={e => setTime(e.target.value)} />
             <button
-              onClick={() => { const now = new Date(); setDate(now.toISOString().slice(0,10)); setTime(`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`) }}
+              onClick={() => { const now = new Date(); setDate(localDateStr()); setTime(`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`) }}
               style={{ padding: '0 14px', background: 'var(--cream2)', border: '1.5px solid var(--border)', borderRadius: 'var(--r-sm)', color: 'var(--text-med)', fontSize: 13, fontWeight: 700 }}
             >Now</button>
           </div>
@@ -81,7 +86,7 @@ function SimpleModal({ emoji, title, onClose, onSave, hasDuration, durationLabel
 
 function TummyTimeModal({ onClose, onSave }: { onClose: () => void; onSave: (t: string, notes: string, dur: string) => Promise<void> }) {
   const n = new Date()
-  const [date,    setDate]    = React.useState(n.toISOString().slice(0,10))
+  const [date,    setDate]    = React.useState(localDateStr())
   const [time,    setTime]    = React.useState(`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`)
   const [manualDur, setManualDur] = React.useState('')
   const [running, setRunning] = React.useState(false)
@@ -142,7 +147,7 @@ function TummyTimeModal({ onClose, onSave }: { onClose: () => void; onSave: (t: 
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <input className="finput" type="time" style={{ flex: 1 }} value={time} onChange={e => setTime(e.target.value)} />
-            <button onClick={() => { const now = new Date(); setDate(now.toISOString().slice(0,10)); setTime(`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`) }}
+            <button onClick={() => { const now = new Date(); setDate(localDateStr()); setTime(`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`) }}
               style={{ padding: '0 14px', background: 'var(--cream2)', border: '1.5px solid var(--border)', borderRadius: 'var(--r-sm)', color: 'var(--text-med)', fontSize: 13, fontWeight: 700 }}>Now</button>
           </div>
         </div>
